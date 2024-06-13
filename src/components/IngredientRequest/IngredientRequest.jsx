@@ -36,31 +36,40 @@ const IngredientRequest = ({ ingredientToFind }) => {
           console.log(oneResult.id);
           // On s'assure que la 1ère lettre de chaque titre soit en majuscule
           const recipeTitle = oneResult.title.charAt(0).toUpperCase() + oneResult.title.slice(1);
-          fetch(
-            `https://api.spoonacular.com/recipes/${oneResult.id}/information?apiKey=8565a82cbb824636a7f9b75b960b1233&includeNutrition=true`
-          )
-            .then((response) => response.json())
-            .then((data) => {
+          axios.get(
+            `https://api.spoonacular.com/recipes/${oneResult.id}/information`,{
+              params: {
+                apiKey: "8565a82cbb824636a7f9b75b960b1233",
+                includeNutrition: true,
+              },
+
+          })
+            .then(({ data }) => {
+              //? Données brutes reçues depuis la WebAPI
               console.log(data);
+            
+              //? Convertit les données duans un format adapté à NOS besoins
+              const result = {
+                title: recipeTitle,
+                id: data.id,
+                url: data.sourceUrl,
+                img: data.image,
+
+
+                departures: data.departures.departure.map(
+                    dep => ({
+                        id: dep.id,
+                        stationName: dep.station,
+                        time: new Date(dep.time * 1000),
+                        delay: dep.delay / 60,
+                        platform: dep.platform
+                    })
+                )
+              }
             })
-            .catch((error) => {
-              console.log("Erreur lors de la récup des données :", error);
-            });
         })
 
-        //? Convertit les données duans un format adapté à NOS besoins
-        const result = {
-          recipeTitle: title,
-          updateTime: new Date(data.timestamp * 1000),
-          departuresCount: data.departures.number,
-          departures: data.departures.departure.map((dep) => ({
-            id: dep.id,
-            stationName: dep.station,
-            time: new Date(dep.time * 1000),
-            delay: dep.delay / 60,
-            platform: dep.platform,
-          })),
-        };
+        
         //? Données converties
         console.log(result);
 
