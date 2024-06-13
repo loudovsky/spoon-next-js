@@ -27,14 +27,30 @@ const IngredientRequest = ({ ingredientToFind }) => {
           instructionsRequired: true,
           number: 3,
         },
-      })
-      .then(({ data }) => {
+      }) .then(({ data }) => {
+
         //? Données brutes reçues depuis la WebAPI
         console.log(data);
 
+        data.results.forEach(function (oneResult) {
+          console.log(oneResult.id);
+          // On s'assure que la 1ère lettre de chaque titre soit en majuscule
+          const recipeTitle = oneResult.title.charAt(0).toUpperCase() + oneResult.title.slice(1);
+          fetch(
+            `https://api.spoonacular.com/recipes/${oneResult.id}/information?apiKey=8565a82cbb824636a7f9b75b960b1233&includeNutrition=true`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              console.log(data);
+            })
+            .catch((error) => {
+              console.log("Erreur lors de la récup des données :", error);
+            });
+        })
+
         //? Convertit les données duans un format adapté à NOS besoins
         const result = {
-          stationName: data.station,
+          recipeTitle: title,
           updateTime: new Date(data.timestamp * 1000),
           departuresCount: data.departures.number,
           departures: data.departures.departure.map((dep) => ({
@@ -56,9 +72,21 @@ const IngredientRequest = ({ ingredientToFind }) => {
         setLoading(false);
         setError();
       });
-  }, [stationToFind]);
+  }, [ingredientToFind]);
 
-  return <div>IngredientRequest</div>;
+  return (
+    <div>
+      {isLoading ? (
+        <p>Chargement...</p>
+      ) : searchResult ? (
+        <Dashboard {...searchResult} />
+      ) : error ? (
+        <p>Erreur lors de la requête</p>
+      ) : (
+        <p>Aucune donnée...</p>
+      )}
+    </div>
+  );
 };
 
 export default IngredientRequest;
